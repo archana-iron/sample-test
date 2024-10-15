@@ -13,7 +13,6 @@ jobs:
   build-debug:
     name: Build Debug APKs
     runs-on: ubuntu-latest
-    if: github.ref != 'refs/heads/main'  # Run this job if not on main branch
 
     strategy:
       matrix:
