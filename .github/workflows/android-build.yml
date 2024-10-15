@@ -13,6 +13,7 @@ jobs:
   build-debug:
     name: Build Debug APKs
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'  # Run this job only on main branch
 
     strategy:
       matrix:
@@ -54,6 +55,7 @@ jobs:
       #     npm install
       #     cd android
       #     ./gradlew clean
+      # uncommant above and comment below three steps added to prebuild the bundler to run debug app.
       - name: Install dependencies
         run: |
           npm install
@@ -82,7 +84,7 @@ jobs:
   build-release:
     name: Build Release APKs
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main-123'  # Run this job only on main branch
+    # if: github.ref == 'refs/heads/main-123'  # Run this job only on main branch
 
     strategy:
       matrix:
