@@ -39,14 +39,15 @@ jobs:
           node-version: '20'
           path: |
             ~/.npm
-            ~/.cache/yarn
-            node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
       - name: Install dependencies
-        run: yarn install
+        run: |
+          npm install
+          cd android
+          ./gradlew clean
 
       - name: Build Android app
         run: |
