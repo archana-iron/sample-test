@@ -49,9 +49,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
+      # - name: Install dependencies
+      #   run: |
+      #     npm install
+      #     cd android
+      #     ./gradlew clean
       - name: Install dependencies
         run: |
           npm install
+
+      - name: Generate JavaScript bundle
+        run: |
+          npm run bundle # Ensure this script is defined in your package.json
+
+      - name: Clean Android build
+        run: |
           cd android
           ./gradlew clean
 
@@ -65,3 +77,62 @@ jobs:
         with:
           name: app-debug-${{ matrix.arch }}
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+  # Job to build Release APKs
+  build-release:
+    name: Build Release APKs
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main-123'  # Run this job only on main branch
+
+    strategy:
+      matrix:
+        arch: [armeabi-v7a, arm64-v8a, x86, x86_64]
+
+    env:
+      JDK_VERSION: '17'
+      ANDROID_API_LEVEL: 30
+      ANDROID_BUILD_TOOLS_VERSION: 30.0.3
+      NDK_VERSION: 21.4.7075529
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
+      BUILD_TYPE: 'release'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JDK_VERSION }}
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          build-tools: ${{ env.ANDROID_BUILD_TOOLS_VERSION }}
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: |
+          npm install
+          cd android
+          ./gradlew clean
+
+      - name: Build Release APK for ${{ matrix.arch }}
+        run: |
+          cd android
+          ./gradlew assembleRelease -Pandroid.injected.arch=${{ matrix.arch }}
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-${{ matrix.arch }}
+          path: android/app/build/outputs/apk/release/app-release.apk
